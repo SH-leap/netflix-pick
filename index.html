@@ -54,45 +54,6 @@
     }
 
     /* ════════════════════════
-       설정(API 키 입력) 화면
-    ════════════════════════ */
-    #setup {
-      align-items: center; justify-content: center;
-      padding: 40px 24px;
-    }
-    .setup-box { max-width: 420px; width: 100%; text-align: center; }
-    .setup-logo { font-size: 52px; margin-bottom: 20px; }
-    .setup-box h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-    .setup-box .setup-sub {
-      font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 32px;
-    }
-    .setup-label {
-      display: block; text-align: left;
-      font-size: 13px; font-weight: 600; color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .setup-input {
-      width: 100%; background: var(--surface2); border: 2px solid var(--border);
-      color: var(--text); padding: 14px 16px; border-radius: 12px;
-      font-size: 14px; font-family: inherit; margin-bottom: 12px;
-      transition: border-color .2s; outline: none;
-    }
-    .setup-input:focus { border-color: var(--red); }
-    .setup-input::placeholder { color: #555; }
-    .setup-hint {
-      font-size: 12px; color: var(--muted); text-align: left;
-      margin-bottom: 24px; line-height: 1.6;
-    }
-    .setup-hint a { color: #aaa; }
-    .btn-setup {
-      width: 100%; background: var(--red); border: none; color: #fff;
-      padding: 16px; border-radius: 12px; font-size: 16px;
-      font-family: inherit; cursor: pointer; font-weight: 700;
-      transition: background .2s;
-    }
-    .btn-setup:hover { background: #f40612; }
-
-    /* ════════════════════════
        홈 화면
     ════════════════════════ */
     .hero { text-align: center; padding: 36px 0 32px; }
@@ -281,31 +242,6 @@
     }
     .btn-home:hover { color: var(--text); }
 
-    /* ── 설정 모달 ── */
-    .modal-bg {
-      display: none; position: fixed; inset: 0; z-index: 500;
-      background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
-      align-items: center; justify-content: center; padding: 24px;
-    }
-    .modal-bg.open { display: flex; }
-    .modal {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 400px;
-    }
-    .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-    .modal p { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
-    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
-    .btn-modal-cancel {
-      flex: 1; background: var(--surface2); border: none; color: var(--muted);
-      padding: 14px; border-radius: 10px; font-size: 14px;
-      font-family: inherit; cursor: pointer;
-    }
-    .btn-modal-save {
-      flex: 2; background: var(--red); border: none; color: #fff;
-      padding: 14px; border-radius: 10px; font-size: 14px;
-      font-family: inherit; cursor: pointer; font-weight: 700;
-    }
-
     @media (max-width: 380px) {
       .genre-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -313,39 +249,11 @@
 </head>
 <body>
 
-<!-- ════════ 0. API 키 설정 화면 (첫 실행 시) ════════ -->
-<div id="setup" class="screen">
-  <div class="setup-box">
-    <div class="setup-logo">🎬</div>
-    <h1>우리픽에 온 걸 환영해!</h1>
-    <p class="setup-sub">
-      Claude API 키를 한 번만 입력하면<br>
-      둘만의 넷플릭스 픽을 시작할 수 있어 💕<br>
-      키는 이 기기에만 저장되고, 외부로 전송되지 않아.
-    </p>
-    <label class="setup-label">Anthropic API 키</label>
-    <input
-      id="setup-key-input"
-      class="setup-input"
-      type="password"
-      placeholder="sk-ant-api03-..."
-      autocomplete="off"
-    />
-    <p class="setup-hint">
-      키가 없다면 <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> 에서 발급받을 수 있어.
-    </p>
-    <button class="btn-setup" onclick="saveApiKey()">시작하기 →</button>
-  </div>
-</div>
-
 <!-- ════════ 1. 홈 화면 ════════ -->
 <div id="home" class="screen">
   <div class="header">
     <div class="logo">🎬 우리픽</div>
-    <div style="display:flex;gap:4px">
-      <button class="hbtn" onclick="nav('liked')" title="찜 목록">♡</button>
-      <button class="hbtn" onclick="openSettings()" title="API 키 설정">⚙</button>
-    </div>
+    <button class="hbtn" onclick="nav('liked')" title="찜 목록">♡</button>
   </div>
   <div class="wrap">
     <div class="hero">
@@ -422,67 +330,12 @@
   </div>
 </div>
 
-<!-- ════════ API 키 변경 모달 ════════ -->
-<div class="modal-bg" id="settings-modal">
-  <div class="modal">
-    <h3>⚙ API 키 변경</h3>
-    <p>새 API 키를 입력해줘. 기존 키는 덮어씌워져.</p>
-    <label class="setup-label">Anthropic API 키</label>
-    <input
-      id="modal-key-input"
-      class="setup-input"
-      type="password"
-      placeholder="sk-ant-api03-..."
-      autocomplete="off"
-    />
-    <div class="modal-actions">
-      <button class="btn-modal-cancel" onclick="closeSettings()">취소</button>
-      <button class="btn-modal-save" onclick="updateApiKey()">저장</button>
-    </div>
-  </div>
-</div>
-
 <script>
 // ══════════════════════════════
-//  API 키 (localStorage 관리)
+//  API 키 (GitHub Actions가 빌드 시 주입)
 // ══════════════════════════════
 function getApiKey() {
-  return localStorage.getItem('uri_api_key') || '';
-}
-
-function saveApiKey() {
-  const input = document.getElementById('setup-key-input');
-  const key = input.value.trim();
-  if (!key.startsWith('sk-ant-')) {
-    input.style.borderColor = '#E50914';
-    input.placeholder = 'sk-ant-... 로 시작하는 키를 입력해줘!';
-    setTimeout(() => { input.style.borderColor = ''; }, 2000);
-    return;
-  }
-  localStorage.setItem('uri_api_key', key);
-  input.value = '';
-  nav('home');
-}
-
-function openSettings() {
-  document.getElementById('modal-key-input').value = '';
-  document.getElementById('settings-modal').classList.add('open');
-}
-
-function closeSettings() {
-  document.getElementById('settings-modal').classList.remove('open');
-}
-
-function updateApiKey() {
-  const input = document.getElementById('modal-key-input');
-  const key = input.value.trim();
-  if (!key.startsWith('sk-ant-')) {
-    input.style.borderColor = '#E50914';
-    setTimeout(() => { input.style.borderColor = ''; }, 2000);
-    return;
-  }
-  localStorage.setItem('uri_api_key', key);
-  closeSettings();
+  return '__ANTHROPIC_API_KEY__';
 }
 
 // ══════════════════════════════
@@ -554,16 +407,7 @@ function nav(id) {
 //  초기화
 // ══════════════════════════════
 function init() {
-  if (getApiKey()) nav('home');
-  else nav('setup');
-
-  // Enter 키로 설정 저장
-  document.getElementById('setup-key-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') saveApiKey();
-  });
-  document.getElementById('modal-key-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') updateApiKey();
-  });
+  nav('home');
 }
 
 // ══════════════════════════════
