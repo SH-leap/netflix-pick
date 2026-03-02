@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우리픽 🎬</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #141414;
+      --surface: #1f1f1f;
+      --surface2: #2a2a2a;
+      --red: #E50914;
+      --red-dim: rgba(229, 9, 20, 0.15);
+      --text: #ffffff;
+      --muted: #999;
+      --border: #2e2e2e;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .screen { display: none; min-height: 100vh; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── 헤더 ── */
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(20,20,20,.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+    }
+    .logo { font-size: 18px; font-weight: 900; color: var(--red); letter-spacing: -.5px; }
+    .hbtn {
+      background: none; border: none; color: var(--muted);
+      font-size: 20px; cursor: pointer; padding: 6px 8px;
+      border-radius: 8px; transition: color .2s;
+      font-family: inherit;
+    }
+    .hbtn:hover { color: var(--text); }
+
+    .wrap {
+      flex: 1; padding: 24px 20px 120px;
+      max-width: 500px; margin: 0 auto; width: 100%;
+    }
+
+    /* ════════════════════════
+       설정(API 키 입력) 화면
+    ════════════════════════ */
+    #setup {
+      align-items: center; justify-content: center;
+      padding: 40px 24px;
+    }
+    .setup-box { max-width: 420px; width: 100%; text-align: center; }
+    .setup-logo { font-size: 52px; margin-bottom: 20px; }
+    .setup-box h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .setup-box .setup-sub {
+      font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 32px;
+    }
+    .setup-label {
+      display: block; text-align: left;
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .setup-input {
+      width: 100%; background: var(--surface2); border: 2px solid var(--border);
+      color: var(--text); padding: 14px 16px; border-radius: 12px;
+      font-size: 14px; font-family: inherit; margin-bottom: 12px;
+      transition: border-color .2s; outline: none;
+    }
+    .setup-input:focus { border-color: var(--red); }
+    .setup-input::placeholder { color: #555; }
+    .setup-hint {
+      font-size: 12px; color: var(--muted); text-align: left;
+      margin-bottom: 24px; line-height: 1.6;
+    }
+    .setup-hint a { color: #aaa; }
+    .btn-setup {
+      width: 100%; background: var(--red); border: none; color: #fff;
+      padding: 16px; border-radius: 12px; font-size: 16px;
+      font-family: inherit; cursor: pointer; font-weight: 700;
+      transition: background .2s;
+    }
+    .btn-setup:hover { background: #f40612; }
+
+    /* ════════════════════════
+       홈 화면
+    ════════════════════════ */
+    .hero { text-align: center; padding: 36px 0 32px; }
+    .hero-icon { font-size: 60px; display: block; margin-bottom: 16px; }
+    .hero h1 { font-size: 24px; font-weight: 700; line-height: 1.4; margin-bottom: 8px; }
+    .hero p { font-size: 14px; color: var(--muted); }
+
+    .sec-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+
+    .mood-wrap { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .mood-tag {
+      background: var(--surface2); border: 2px solid transparent;
+      color: var(--text); padding: 10px 18px; border-radius: 50px;
+      font-size: 15px; font-family: inherit; cursor: pointer;
+      transition: all .2s; font-weight: 500;
+    }
+    .mood-tag:hover { border-color: var(--red); background: var(--red-dim); }
+    .mood-tag.sel { border-color: var(--red); background: var(--red-dim); color: #ff7070; }
+
+    /* ════════════════════════
+       질문 화면
+    ════════════════════════ */
+    .prog-bar { height: 3px; background: var(--border); border-radius: 3px; margin-bottom: 18px; }
+    .prog-fill { height: 100%; background: var(--red); border-radius: 3px; transition: width .4s ease; }
+    .step-lbl { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .q-text { font-size: 20px; font-weight: 700; line-height: 1.4; margin-bottom: 24px; }
+
+    .genre-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-bottom: 12px;
+    }
+    .genre-btn {
+      background: var(--surface2); border: 2px solid transparent;
+      color: var(--text); padding: 13px 8px; border-radius: 10px;
+      font-size: 13px; font-family: inherit; cursor: pointer;
+      transition: all .2s; text-align: center; font-weight: 500; line-height: 1.3;
+    }
+    .genre-btn:hover:not(.dim) { border-color: var(--red); background: var(--red-dim); }
+    .genre-btn.sel { border-color: var(--red); background: var(--red-dim); color: #ff7070; }
+    .genre-btn.dim { opacity: .35; cursor: not-allowed; }
+    .genre-count { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 24px; }
+    .genre-count b { color: var(--red); }
+
+    .opt-list { display: flex; flex-direction: column; gap: 12px; }
+    .opt-btn {
+      background: var(--surface2); border: 2px solid transparent;
+      color: var(--text); padding: 18px 20px; border-radius: 12px;
+      font-size: 16px; font-family: inherit; cursor: pointer;
+      transition: all .2s; text-align: left; font-weight: 500;
+    }
+    .opt-btn:hover { border-color: var(--red); background: var(--red-dim); }
+    .opt-btn.sel { border-color: var(--red); background: var(--red-dim); }
+
+    .nav { display: flex; gap: 10px; margin-top: 32px; }
+    .btn-back {
+      flex: 1; background: var(--surface2); border: none;
+      color: var(--muted); padding: 16px; border-radius: 12px;
+      font-size: 15px; font-family: inherit; cursor: pointer; transition: all .2s; font-weight: 500;
+    }
+    .btn-back:hover { background: var(--border); color: var(--text); }
+    .btn-next {
+      flex: 2; background: var(--red); border: none;
+      color: #fff; padding: 16px; border-radius: 12px;
+      font-size: 15px; font-family: inherit; cursor: pointer; transition: background .2s; font-weight: 700;
+    }
+    .btn-next:hover:not(:disabled) { background: #f40612; }
+    .btn-next:disabled { opacity: .35; cursor: not-allowed; }
+
+    /* ════════════════════════
+       로딩 화면
+    ════════════════════════ */
+    #loading { align-items: center; justify-content: center; text-align: center; }
+    .spin {
+      width: 56px; height: 56px;
+      border: 4px solid var(--border); border-top-color: var(--red);
+      border-radius: 50%; animation: spin .8s linear infinite;
+      margin: 0 auto 24px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .load-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .load-sub { font-size: 14px; color: var(--muted); }
+
+    /* ════════════════════════
+       결과 화면
+    ════════════════════════ */
+    .result-top {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+    }
+    .result-top h2 { font-size: 20px; font-weight: 700; }
+    .btn-refresh {
+      background: var(--surface2); border: none; color: var(--muted);
+      width: 38px; height: 38px; border-radius: 50%; font-size: 20px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+    }
+    .btn-refresh:hover { color: var(--text); transform: rotate(45deg); }
+    .result-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+
+    .cards { display: flex; flex-direction: column; gap: 16px; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px;
+      animation: fadeUp .4s ease both;
+    }
+    .card:nth-child(1) { animation-delay: .04s; }
+    .card:nth-child(2) { animation-delay: .14s; }
+    .card:nth-child(3) { animation-delay: .24s; }
+    .card:nth-child(4) { animation-delay: .34s; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .card-title { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
+    .card-en { font-size: 12px; color: var(--muted); }
+    .type-badge {
+      font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 700;
+      white-space: nowrap; margin-left: 12px; flex-shrink: 0;
+    }
+    .t-series { background: rgba(229,9,20,.2); color: #ff8080; }
+    .t-movie  { background: rgba(80,130,255,.2); color: #90b8ff; }
+
+    .card-genres { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .gtag {
+      font-size: 11px; padding: 3px 10px; border-radius: 20px;
+      background: var(--surface2); color: var(--muted); font-weight: 500;
+    }
+
+    .card-meta { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+    .card-reason {
+      font-size: 14px; line-height: 1.75; color: #d0d0d0;
+      background: var(--surface2); border-radius: 10px;
+      padding: 14px; margin-bottom: 16px;
+    }
+
+    .card-actions { display: flex; gap: 8px; }
+    .act-btn {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--muted); padding: 10px 6px; border-radius: 8px;
+      font-size: 13px; font-family: inherit; cursor: pointer;
+      transition: all .2s; font-weight: 500;
+    }
+    .act-btn:hover { border-color: var(--muted); color: var(--text); }
+    .act-btn.watched { background: rgba(80,200,80,.12); border-color: rgba(80,200,80,.4); color: #7ed87e; }
+    .act-btn.liked   { background: var(--red-dim); border-color: rgba(229,9,20,.4); color: #ff7070; }
+
+    .err-box {
+      background: rgba(229,9,20,.08); border: 1px solid rgba(229,9,20,.3);
+      border-radius: 12px; padding: 24px; text-align: center;
+      color: #ff9090; font-size: 14px; line-height: 1.7;
+    }
+    .err-icon { font-size: 36px; margin-bottom: 12px; }
+
+    /* ════════════════════════
+       찜 목록 화면
+    ════════════════════════ */
+    .liked-empty { text-align: center; padding: 60px 20px; }
+    .liked-empty .ei { font-size: 52px; margin-bottom: 16px; }
+    .liked-empty p { color: var(--muted); font-size: 15px; line-height: 1.7; }
+
+    .liked-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+      animation: fadeUp .3s ease both;
+    }
+    .lc-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .lc-meta { font-size: 12px; color: var(--muted); }
+    .btn-unlike {
+      background: none; border: none; color: var(--muted);
+      font-size: 18px; cursor: pointer; padding: 6px; margin-left: 12px;
+      border-radius: 6px; transition: color .2s; flex-shrink: 0;
+    }
+    .btn-unlike:hover { color: var(--red); }
+
+    .btn-home {
+      display: block; width: 100%; margin-top: 18px;
+      background: var(--surface2); border: none; color: var(--muted);
+      padding: 14px; border-radius: 12px; font-size: 14px;
+      font-family: inherit; cursor: pointer; transition: color .2s;
+    }
+    .btn-home:hover { color: var(--text); }
+
+    /* ── 설정 모달 ── */
+    .modal-bg {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 400px;
+    }
+    .modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .modal p { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-modal-cancel {
+      flex: 1; background: var(--surface2); border: none; color: var(--muted);
+      padding: 14px; border-radius: 10px; font-size: 14px;
+      font-family: inherit; cursor: pointer;
+    }
+    .btn-modal-save {
+      flex: 2; background: var(--red); border: none; color: #fff;
+      padding: 14px; border-radius: 10px; font-size: 14px;
+      font-family: inherit; cursor: pointer; font-weight: 700;
+    }
+
+    @media (max-width: 380px) {
+      .genre-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════ 0. API 키 설정 화면 (첫 실행 시) ════════ -->
+<div id="setup" class="screen">
+  <div class="setup-box">
+    <div class="setup-logo">🎬</div>
+    <h1>우리픽에 온 걸 환영해!</h1>
+    <p class="setup-sub">
+      Claude API 키를 한 번만 입력하면<br>
+      둘만의 넷플릭스 픽을 시작할 수 있어 💕<br>
+      키는 이 기기에만 저장되고, 외부로 전송되지 않아.
+    </p>
+    <label class="setup-label">Anthropic API 키</label>
+    <input
+      id="setup-key-input"
+      class="setup-input"
+      type="password"
+      placeholder="sk-ant-api03-..."
+      autocomplete="off"
+    />
+    <p class="setup-hint">
+      키가 없다면 <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a> 에서 발급받을 수 있어.
+    </p>
+    <button class="btn-setup" onclick="saveApiKey()">시작하기 →</button>
+  </div>
+</div>
+
+<!-- ════════ 1. 홈 화면 ════════ -->
+<div id="home" class="screen">
+  <div class="header">
+    <div class="logo">🎬 우리픽</div>
+    <div style="display:flex;gap:4px">
+      <button class="hbtn" onclick="nav('liked')" title="찜 목록">♡</button>
+      <button class="hbtn" onclick="openSettings()" title="API 키 설정">⚙</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="hero">
+      <span class="hero-icon">👫</span>
+      <h1>오늘은 어떤 거 볼까?</h1>
+      <p>기분을 골라봐, 딱 맞는 작품 찾아줄게 💕</p>
+    </div>
+    <div class="sec-title">지금 기분이 어때? ✨</div>
+    <div class="mood-wrap" id="mood-wrap">
+      <button class="mood-tag" data-mood="힐링">🌿 힐링</button>
+      <button class="mood-tag" data-mood="스릴">⚡ 스릴</button>
+      <button class="mood-tag" data-mood="웃음">😂 웃음</button>
+      <button class="mood-tag" data-mood="눈물">🥺 눈물</button>
+      <button class="mood-tag" data-mood="두근두근">💓 두근두근</button>
+      <button class="mood-tag" data-mood="긴장감">😬 긴장감</button>
+      <button class="mood-tag" data-mood="소름">🦴 소름</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ 2. 질문 화면 ════════ -->
+<div id="question" class="screen">
+  <div class="header">
+    <button class="hbtn" onclick="qBack()">←</button>
+    <div class="logo">🎬 우리픽</div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="wrap">
+    <div class="prog-bar"><div class="prog-fill" id="prog"></div></div>
+    <div class="step-lbl" id="step-lbl"></div>
+    <div class="q-text" id="q-text"></div>
+    <div id="q-body"></div>
+    <div class="nav">
+      <button class="btn-back" id="btn-prev" onclick="prevStep()">← 이전</button>
+      <button class="btn-next" id="btn-next" onclick="nextStep()">다음 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ 3. 로딩 화면 ════════ -->
+<div id="loading" class="screen">
+  <div class="spin"></div>
+  <div class="load-title">딱 맞는 작품 찾는 중... 🔍</div>
+  <div class="load-sub">둘이 같이 볼 최고의 픽을 골라볼게!</div>
+</div>
+
+<!-- ════════ 4. 결과 화면 ════════ -->
+<div id="result" class="screen">
+  <div class="header">
+    <button class="hbtn" onclick="nav('home')">←</button>
+    <div class="logo">🎬 우리픽</div>
+    <button class="hbtn" onclick="nav('liked')">♡</button>
+  </div>
+  <div class="wrap">
+    <div class="result-top">
+      <h2>오늘의 추천 🍿</h2>
+      <button class="btn-refresh" onclick="doRefresh()" title="다른 작품 추천받기">↻</button>
+    </div>
+    <p class="result-sub" id="result-sub"></p>
+    <div class="cards" id="cards"></div>
+  </div>
+</div>
+
+<!-- ════════ 5. 찜 목록 화면 ════════ -->
+<div id="liked" class="screen">
+  <div class="header">
+    <button class="hbtn" onclick="nav('home')">←</button>
+    <div class="logo">🎬 우리픽</div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="wrap">
+    <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;">찜한 작품 ♡</h2>
+    <div id="liked-body"></div>
+  </div>
+</div>
+
+<!-- ════════ API 키 변경 모달 ════════ -->
+<div class="modal-bg" id="settings-modal">
+  <div class="modal">
+    <h3>⚙ API 키 변경</h3>
+    <p>새 API 키를 입력해줘. 기존 키는 덮어씌워져.</p>
+    <label class="setup-label">Anthropic API 키</label>
+    <input
+      id="modal-key-input"
+      class="setup-input"
+      type="password"
+      placeholder="sk-ant-api03-..."
+      autocomplete="off"
+    />
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeSettings()">취소</button>
+      <button class="btn-modal-save" onclick="updateApiKey()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════
+//  API 키 (localStorage 관리)
+// ══════════════════════════════
+function getApiKey() {
+  return localStorage.getItem('uri_api_key') || '';
+}
+
+function saveApiKey() {
+  const input = document.getElementById('setup-key-input');
+  const key = input.value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    input.style.borderColor = '#E50914';
+    input.placeholder = 'sk-ant-... 로 시작하는 키를 입력해줘!';
+    setTimeout(() => { input.style.borderColor = ''; }, 2000);
+    return;
+  }
+  localStorage.setItem('uri_api_key', key);
+  input.value = '';
+  nav('home');
+}
+
+function openSettings() {
+  document.getElementById('modal-key-input').value = '';
+  document.getElementById('settings-modal').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+
+function updateApiKey() {
+  const input = document.getElementById('modal-key-input');
+  const key = input.value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    input.style.borderColor = '#E50914';
+    setTimeout(() => { input.style.borderColor = ''; }, 2000);
+    return;
+  }
+  localStorage.setItem('uri_api_key', key);
+  closeSettings();
+}
+
+// ══════════════════════════════
+//  상수
+// ══════════════════════════════
+const GENRES = [
+  '로맨스','스릴러','공포','코미디','액션',
+  '판타지·SF','범죄·수사','다큐멘터리',
+  '애니메이션','역사·시대극','스포츠','음악·아이돌'
+];
+
+const STEPS = [
+  {
+    lbl: '질문 1 / 4',
+    text: '어떤 장르가 끌려요? 최대 3개까지 골라요 🎬',
+    type: 'genre', key: 'genres'
+  },
+  {
+    lbl: '질문 2 / 4',
+    text: '지금 어떻게 보고 싶어요?',
+    type: 'single', key: 'focus',
+    opts: [
+      { v: '집중해서 볼래요', l: '집중해서 볼래요 🎯' },
+      { v: '틀어놓고 쉬고 싶어요', l: '틀어놓고 쉬고 싶어요 😴' }
+    ]
+  },
+  {
+    lbl: '질문 3 / 4',
+    text: '어느 나라 작품이 끌려요?',
+    type: 'single', key: 'country',
+    opts: [
+      { v: '한국 작품', l: '한국 작품 🇰🇷' },
+      { v: '해외 작품', l: '해외 작품 🌍' },
+      { v: '상관없어요', l: '상관없어요 🤷' }
+    ]
+  },
+  {
+    lbl: '질문 4 / 4',
+    text: '얼마나 길게 볼 수 있어요?',
+    type: 'single', key: 'length',
+    opts: [
+      { v: '짧게 끝내고 싶어요', l: '짧게 끝내고 싶어요 (영화·미니시리즈)' },
+      { v: '길어도 괜찮아요', l: '길어도 괜찮아요 (시즌제)' }
+    ]
+  }
+];
+
+// ══════════════════════════════
+//  앱 상태
+// ══════════════════════════════
+const S = {
+  mood: '',
+  step: 0,
+  ans: { genres: [], focus: '', country: '', length: '' },
+  recs: [],
+  prevTitles: []
+};
+
+// ══════════════════════════════
+//  화면 전환
+// ══════════════════════════════
+function nav(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'liked') renderLiked();
+}
+
+// ══════════════════════════════
+//  초기화
+// ══════════════════════════════
+function init() {
+  if (getApiKey()) nav('home');
+  else nav('setup');
+
+  // Enter 키로 설정 저장
+  document.getElementById('setup-key-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveApiKey();
+  });
+  document.getElementById('modal-key-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') updateApiKey();
+  });
+}
+
+// ══════════════════════════════
+//  홈 화면
+// ══════════════════════════════
+document.getElementById('mood-wrap').addEventListener('click', e => {
+  const btn = e.target.closest('.mood-tag');
+  if (!btn) return;
+  S.mood = btn.dataset.mood;
+  document.querySelectorAll('.mood-tag').forEach(t => t.classList.remove('sel'));
+  btn.classList.add('sel');
+  setTimeout(() => {
+    S.step = 0;
+    S.ans = { genres: [], focus: '', country: '', length: '' };
+    S.prevTitles = [];
+    renderStep();
+    nav('question');
+  }, 180);
+});
+
+// ══════════════════════════════
+//  질문 화면
+// ══════════════════════════════
+function renderStep() {
+  const s = STEPS[S.step];
+  const total = STEPS.length;
+  document.getElementById('prog').style.width = `${((S.step + 1) / total) * 100}%`;
+  document.getElementById('step-lbl').textContent = s.lbl;
+  document.getElementById('q-text').textContent = s.text;
+
+  const body = document.getElementById('q-body');
+  body.innerHTML = '';
+
+  if (s.type === 'genre') renderGenreStep(body);
+  else renderSingleStep(body, s);
+
+  document.getElementById('btn-prev').style.display = S.step === 0 ? 'none' : '';
+  const nxt = document.getElementById('btn-next');
+  nxt.textContent = S.step === total - 1 ? '추천받기 ✨' : '다음 →';
+  refreshNextBtn();
+}
+
+function renderGenreStep(body) {
+  const grid = document.createElement('div');
+  grid.className = 'genre-grid';
+  GENRES.forEach(g => {
+    const btn = document.createElement('button');
+    btn.className = 'genre-btn';
+    btn.textContent = g;
+    if (S.ans.genres.includes(g)) btn.classList.add('sel');
+    if (S.ans.genres.length >= 3 && !S.ans.genres.includes(g)) btn.classList.add('dim');
+    btn.onclick = () => toggleGenre(g);
+    grid.appendChild(btn);
+  });
+  body.appendChild(grid);
+
+  const cnt = document.createElement('div');
+  cnt.className = 'genre-count';
+  const n = S.ans.genres.length;
+  cnt.innerHTML = n === 0 ? '아직 아무것도 안 골랐어요 👀' : `<b>${n}</b>/3 선택됨`;
+  body.appendChild(cnt);
+}
+
+function toggleGenre(g) {
+  const arr = S.ans.genres;
+  const i = arr.indexOf(g);
+  if (i >= 0) arr.splice(i, 1);
+  else { if (arr.length >= 3) return; arr.push(g); }
+  renderStep();
+}
+
+function renderSingleStep(body, s) {
+  const list = document.createElement('div');
+  list.className = 'opt-list';
+  s.opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn' + (S.ans[s.key] === opt.v ? ' sel' : '');
+    btn.textContent = opt.l;
+    btn.onclick = () => {
+      S.ans[s.key] = opt.v;
+      list.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      refreshNextBtn();
+    };
+    list.appendChild(btn);
+  });
+  body.appendChild(list);
+}
+
+function refreshNextBtn() {
+  const s = STEPS[S.step];
+  const ok = s.type === 'genre' ? S.ans.genres.length > 0 : !!S.ans[s.key];
+  document.getElementById('btn-next').disabled = !ok;
+}
+
+function nextStep() {
+  if (S.step < STEPS.length - 1) { S.step++; renderStep(); }
+  else fetchRecs(false);
+}
+function prevStep() { if (S.step > 0) { S.step--; renderStep(); } }
+function qBack() { S.step === 0 ? nav('home') : prevStep(); }
+
+// ══════════════════════════════
+//  Claude API 호출
+// ══════════════════════════════
+async function fetchRecs(isRefresh) {
+  nav('loading');
+
+  const watched = getWatched().map(w => w.title);
+  const liked   = getLiked().map(l => l.title);
+
+  const userMsg =
+`오늘 기분: ${S.mood}
+선호 카테고리: ${S.ans.genres.join(', ')}
+집중도: ${S.ans.focus}
+선호 국가: ${S.ans.country}
+선호 길이: ${S.ans.length}
+이미 본 작품 목록: ${watched.length ? watched.join(', ') : '없음'}
+찜한 작품 목록: ${liked.length ? liked.join(', ') : '없음'}
+
+위 조건에 맞는 현재 한국 넷플릭스 작품 4개를 추천해줘.${
+  isRefresh || S.prevTitles.length
+    ? `\n앞서 추천한 작품과 겹치지 않게 다른 4개를 추천해줘. (제외 목록: ${S.prevTitles.join(', ')})`
+    : ''
+}`;
+
+  const sysMsg =
+`너는 한국 넷플릭스 콘텐츠 전문 큐레이터야.
+현재 한국 넷플릭스에서 실제로 시청 가능한 작품만 추천해야 해.
+최신 트렌드와 화제작을 반영해서 추천하고,
+응답은 반드시 아래 JSON 형식만 반환해. 다른 텍스트는 절대 포함하지 마.
+
+{
+  "recommendations": [
+    {
+      "title": "작품 제목",
+      "titleEn": "English Title",
+      "genres": ["장르1", "장르2"],
+      "type": "series 또는 movie",
+      "seasonsOrRuntime": "시즌 수 또는 러닝타임",
+      "year": 출시연도,
+      "reason": "이 사용자의 선택을 반영한 센스 있는 추천 이유 (이모지 포함, 친근한 말투)"
+    }
+  ]
+}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': getApiKey(),
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        system: sysMsg,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`API 오류 (${res.status})\n${t}`);
+    }
+
+    const data = await res.json();
+    const raw  = data.content[0].text.trim();
+    const m    = raw.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('올바른 JSON 응답을 받지 못했어요.');
+
+    const parsed = JSON.parse(m[0]);
+    S.recs = parsed.recommendations || [];
+    S.prevTitles.push(...S.recs.map(r => r.title));
+
+    renderResults();
+    nav('result');
+  } catch (err) {
+    nav('result');
+    document.getElementById('result-sub').textContent = '';
+    document.getElementById('cards').innerHTML = `
+      <div class="err-box">
+        <div class="err-icon">😢</div>
+        <strong>앗, 오류가 생겼어!</strong><br><br>
+        ${esc(err.message)}<br><br>
+        API 키를 확인하고 다시 시도해봐 💕
+      </div>
+      <button class="btn-home" onclick="nav('home')">← 처음으로 돌아가기</button>
+    `;
+  }
+}
+
+function doRefresh() { fetchRecs(true); }
+
+// ══════════════════════════════
+//  결과 렌더링
+// ══════════════════════════════
+function renderResults() {
+  document.getElementById('result-sub').textContent =
+    `${S.mood} 기분에 딱 맞는 작품들이야! 🎉`;
+  const cards = document.getElementById('cards');
+  cards.innerHTML = '';
+
+  S.recs.forEach((item, idx) => {
+    const w = isWatched(item.title);
+    const l = isLiked(item.title);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-head">
+        <div>
+          <div class="card-title">${esc(item.title)}</div>
+          <div class="card-en">${esc(item.titleEn || '')}</div>
+        </div>
+        <span class="type-badge ${item.type === 'series' ? 't-series' : 't-movie'}">
+          ${item.type === 'series' ? '시리즈' : '영화'}
+        </span>
+      </div>
+      <div class="card-genres">
+        ${(item.genres||[]).map(g=>`<span class="gtag">${esc(g)}</span>`).join('')}
+      </div>
+      <div class="card-meta">📅 ${item.year||''} &nbsp;·&nbsp; ⏱ ${esc(item.seasonsOrRuntime||'')}</div>
+      <div class="card-reason">${esc(item.reason||'')}</div>
+      <div class="card-actions">
+        <button class="act-btn${w?' watched':''}" data-idx="${idx}" data-type="watch">
+          ${w ? '✓ 봤어요' : '봤어요'}
+        </button>
+        <button class="act-btn${l?' liked':''}" data-idx="${idx}" data-type="like">
+          ${l ? '♥ 찜됨' : '♡ 찜'}
+        </button>
+      </div>
+    `;
+    cards.appendChild(card);
+  });
+
+  cards.addEventListener('click', e => {
+    const btn = e.target.closest('.act-btn');
+    if (!btn) return;
+    const idx = parseInt(btn.dataset.idx, 10);
+    const type = btn.dataset.type;
+    if (type === 'watch') handleWatch(idx);
+    else handleLike(idx);
+  });
+}
+
+function handleWatch(idx) {
+  const item = S.recs[idx];
+  const arr = getWatched();
+  const i = arr.findIndex(w => w.title === item.title);
+  if (i >= 0) arr.splice(i, 1);
+  else arr.push({ title: item.title, titleEn: item.titleEn });
+  saveWatched(arr);
+  const now = isWatched(item.title);
+  const btn = document.querySelector(`.act-btn[data-idx="${idx}"][data-type="watch"]`);
+  if (btn) { btn.textContent = now ? '✓ 봤어요' : '봤어요'; btn.classList.toggle('watched', now); }
+}
+
+function handleLike(idx) {
+  const item = S.recs[idx];
+  const arr = getLiked();
+  const i = arr.findIndex(l => l.title === item.title);
+  if (i >= 0) arr.splice(i, 1);
+  else arr.push({
+    title: item.title, titleEn: item.titleEn,
+    genres: item.genres, type: item.type,
+    seasonsOrRuntime: item.seasonsOrRuntime, year: item.year
+  });
+  saveLiked(arr);
+  const now = isLiked(item.title);
+  const btn = document.querySelector(`.act-btn[data-idx="${idx}"][data-type="like"]`);
+  if (btn) { btn.textContent = now ? '♥ 찜됨' : '♡ 찜'; btn.classList.toggle('liked', now); }
+}
+
+// ══════════════════════════════
+//  찜 목록
+// ══════════════════════════════
+function renderLiked() {
+  const arr = [...getLiked()].reverse();
+  const body = document.getElementById('liked-body');
+
+  if (arr.length === 0) {
+    body.innerHTML = `
+      <div class="liked-empty">
+        <div class="ei">💭</div>
+        <p>아직 찜한 작품이 없어!<br>마음에 드는 작품을 찜해봐 ♡</p>
+      </div>`;
+    return;
+  }
+
+  body.innerHTML = arr.map(item => `
+    <div class="liked-card">
+      <div>
+        <div class="lc-title">${esc(item.title)}</div>
+        <div class="lc-meta">
+          ${esc(item.titleEn||'')}${item.year ? ` · ${item.year}` : ''}${item.type ? ` · ${item.type==='series'?'시리즈':'영화'}` : ''}
+        </div>
+      </div>
+      <button class="btn-unlike" data-title="${escAttr(item.title)}" title="찜 해제">✕</button>
+    </div>
+  `).join('');
+
+  body.querySelectorAll('.btn-unlike').forEach(btn => {
+    btn.onclick = () => {
+      const title = btn.dataset.title;
+      saveLiked(getLiked().filter(l => l.title !== title));
+      renderLiked();
+    };
+  });
+}
+
+// ══════════════════════════════
+//  localStorage 유틸
+// ══════════════════════════════
+function getWatched() { try { return JSON.parse(localStorage.getItem('uri_watched')||'[]'); } catch { return []; } }
+function getLiked()   { try { return JSON.parse(localStorage.getItem('uri_liked')||'[]');   } catch { return []; } }
+function saveWatched(a) { localStorage.setItem('uri_watched', JSON.stringify(a)); }
+function saveLiked(a)   { localStorage.setItem('uri_liked',   JSON.stringify(a)); }
+function isWatched(t) { return getWatched().some(w => w.title === t); }
+function isLiked(t)   { return getLiked().some(l => l.title === t); }
+
+// ══════════════════════════════
+//  XSS 방지
+// ══════════════════════════════
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) { return String(s).replace(/"/g,'&quot;'); }
+
+// ── 시작 ──
+init();
+</script>
+</body>
+</html>
